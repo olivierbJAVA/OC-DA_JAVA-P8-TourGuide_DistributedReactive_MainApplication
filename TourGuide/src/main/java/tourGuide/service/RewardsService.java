@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import tourGuide.domain.location.Attraction;
 import tourGuide.domain.location.Location;
 import tourGuide.domain.location.VisitedLocation;
@@ -108,7 +111,17 @@ public class RewardsService {
 	public int getRewardPoints(Attraction attraction, User user) {
 		int rewardsPoint=0;
 
+		WebClient webClient = WebClient.create("http://localhost:8083");
+		String requestURI = "http://localhost:8081/getUserLocation?userId=" + user.getUserId();
+		Mono<Integer> result = webClient.get()
+				.uri(requestURI)
+				.accept(MediaType.APPLICATION_JSON)
+				.retrieve()
+				.bodyToMono(Integer.class)
+				;
+
 		logger.debug("Request getRewardPoints build");
+		/*
 		HttpClient client = HttpClient.newHttpClient();
 		String requestURI = "http://localhost:8082/getRewardPoints?attractionId=" + attraction.attractionId + "&userId=" + user.getUserId();
 		HttpRequest request = HttpRequest.newBuilder()
@@ -125,6 +138,7 @@ public class RewardsService {
 			e.printStackTrace();
 		}
 		logger.debug("Response RewardsPoint = " + rewardsPoint);
+		 */
 		return rewardsPoint;
 	}
 
