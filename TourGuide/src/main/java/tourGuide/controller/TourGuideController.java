@@ -3,6 +3,7 @@ package tourGuide.controller;
 import java.util.HashMap;
 import java.util.List;
 
+import reactor.core.publisher.Flux;
 import tourGuide.domain.location.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,8 +54,8 @@ public class TourGuideController {
     }
     
     @RequestMapping("/getTripDeals")
-    public List<Provider> getTripDeals(@RequestParam String userName) {
-    	List<Provider> providers = tourGuideService.getTripDeals(getUser(userName));
+    public Flux<Provider> getTripDeals(@RequestParam String userName) {
+    	Flux<Provider> providers = tourGuideService.getTripDeals(getUser(userName));
     	return providers;
     }
 
