@@ -27,11 +27,12 @@ import tourGuide.service.TourGuideService;
 import tourGuide.domain.user.User;
 
 public class TestPerformanceHighVolumeTrackLocation {
-
+/*
 	@BeforeClass
 	public static void setErrorLogging() {
 		LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
 	}
+*/
 	/*
 	 * A note on performance improvements:
 	 *     
@@ -59,7 +60,7 @@ public class TestPerformanceHighVolumeTrackLocation {
 
 		// ARRANGE
 		// Users should be incremented up to 100,000, and test finishes within 15 minutes
-		InternalTestHelper.setInternalUserNumber(100);
+		InternalTestHelper.setInternalUserNumber(1000);
 		RewardsService mockRewardsService = Mockito.spy(new RewardsService());
 		List<Attraction> allAttractions = mockRewardsService.getAllAttractions();
 		doNothing().when(mockRewardsService).calculateRewards(any(User.class), ArgumentMatchers.anyList());

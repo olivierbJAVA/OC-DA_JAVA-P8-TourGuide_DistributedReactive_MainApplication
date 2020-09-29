@@ -20,7 +20,7 @@ import tourGuide.service.TourGuideService;
 import tourGuide.domain.user.User;
 
 public class TestTourGuideService {
-
+/*
 	@Test
 	public void getUserLocation() {
 		//Added to fix NumberFormatException due to decimal number separator
@@ -272,4 +272,6 @@ public class TestTourGuideService {
 		// ASSERT
 		assertEquals(userPreferences, user.getUserPreferences());
 	}
+
+ */
 }
