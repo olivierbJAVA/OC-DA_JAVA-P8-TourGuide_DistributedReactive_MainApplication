@@ -1,36 +1,29 @@
 package tourGuide.service;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tourGuide.configuration.TourGuideInitialization;
-import tourGuide.domain.location.NearbyAttraction;
 import tourGuide.domain.location.Attraction;
 import tourGuide.domain.location.Location;
+import tourGuide.domain.location.NearbyAttraction;
 import tourGuide.domain.location.VisitedLocation;
-import tourGuide.tracker.Tracker;
+import tourGuide.domain.tripdeal.Provider;
 import tourGuide.domain.user.User;
 import tourGuide.domain.user.UserPreferences;
 import tourGuide.domain.user.UserReward;
-import tourGuide.domain.tripdeal.Provider;
+import tourGuide.tracker.Tracker;
+
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Service
 public class TourGuideService {
@@ -130,6 +123,9 @@ public class TourGuideService {
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
 				.bodyToFlux(Provider.class)
+				.doOnComplete(()->System.out.println("SUCES"))
+				//.doOnError((a)->System.out.println("EROR"))
+				//.doOnComplete( (rs) -> user.setTripDeals(rs.co )
 				;
 				//.doOnComplete( () -> user.setTripDeals(result.collectList()) );
 
@@ -143,7 +139,7 @@ public class TourGuideService {
 				.retrieve()
 				.bodyToFlux(Provider.class).toString();
 		*/
-		//String res = result.  subscribe().  toString();//    flatMap(res -> res.bodyToMono (String.class)).block();
+		//String res = result.subscribe().toString();//flatMap(res -> res.bodyToMono (String.class)).block();
 
 		//String r = result.flatMap(res -> res.bodyToMono (String.class)).block();
 
@@ -185,16 +181,29 @@ public class TourGuideService {
 	public Mono<VisitedLocation> trackUserLocation(User user) {
 		logger.debug("Track Location - Thread : " + Thread.currentThread().getName() + " - User : " + user.getUserName());
 
-		VisitedLocation visitedLocation = new VisitedLocation();
+		//VisitedLocation visitedLocation = new VisitedLocation();
 
 		logger.debug("Request getUserLocation build");
-		WebClient webClient = WebClient.create("http://localhost:8083");
-		String requestURI = "http://localhost:8081/getUserLocation?userId=" + user.getUserId();
+		WebClient webClient = WebClient.create("http://localhost:8081");
+		String requestURI = "/getUserLocation?userId=" + user.getUserId();
+		System.out.println(requestURI);
+
 		Mono<VisitedLocation> result = webClient.get()
-				.uri(requestURI)
-				.accept(MediaType.APPLICATION_JSON)
+				//.uri(requestURI)
+				.uri("/getUserLocation?userId="+ user.getUserId())
+				//.uri(uriBuilder -> uriBuilder
+				//				.path("/getUserLocation/")
+				//				.queryParam("userId", user.getUserId().toString())
+				//				.build())
+				//.accept(MediaType.APPLICATION_JSON)
+				//.exchange()
+				//.then(response -> response.bodyToMono(VisitedLocation.class))
 				.retrieve()
 				.bodyToMono(VisitedLocation.class)
+				.doOnSuccess( (rs) -> user.addToVisitedLocations(rs) )
+				.doOnSuccess((r)->System.out.println("SUCES"))
+				.doOnError((r)->System.out.println("EROR"))
+				//.flatMap()map( () -> user.addToVisitedLocations(result) )
 				;
 		/*
 		HttpClient client = HttpClient.newHttpClient();
@@ -225,30 +234,9 @@ public class TourGuideService {
 	public List<NearbyAttraction> getNearByAttractions(VisitedLocation visitedLocation, User user) {
 		List<NearbyAttraction> nearbyAttractions = new ArrayList<>();
 		List<Attraction> allAttractions = rewardsService.getAllAttractions();
-		/*
-		List<Attraction> allAttractions = new ArrayList<>();
-
-		logger.debug("Request getNearByAttractions build");
-		HttpClient client = HttpClient.newHttpClient();
-		String requestURI = "http://localhost:8081/getAttractions";
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(URI.create(requestURI))
-				.GET()
-				.build();
-		try {
-			HttpResponse <String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-			logger.debug("Status code = " + response.statusCode());
-			logger.debug("Response Body = " + response.body());
-			ObjectMapper mapper = new ObjectMapper();
-			allAttractions = mapper.readValue(response.body(), new TypeReference<List<Attraction>>(){ });
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		*/
 		//List<Attraction> allAttractions = gpsService.getAttractions();
 		TreeMap<Double, NearbyAttraction> treeAttractionDistance = new TreeMap<>();
+
 		allAttractions.forEach(attraction -> treeAttractionDistance.put(rewardsService.getDistance(attraction, visitedLocation.location), new NearbyAttraction(attraction.attractionName, new Location(attraction.latitude, attraction.longitude), visitedLocation.location, rewardsService.getDistance(attraction, visitedLocation.location), rewardsService.getRewardPoints(attraction, user))));
 		nearbyAttractions = treeAttractionDistance.values().stream()
 															.limit(5)
