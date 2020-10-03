@@ -1,23 +1,22 @@
 package tourGuide.controller;
 
-import java.util.HashMap;
-import java.util.List;
-
-import reactor.core.publisher.Flux;
-import tourGuide.domain.location.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import reactor.core.publisher.Flux;
+import tourGuide.domain.location.Location;
 import tourGuide.domain.location.NearbyAttraction;
 import tourGuide.domain.location.VisitedLocation;
+import tourGuide.domain.tripdeal.Provider;
 import tourGuide.domain.user.User;
 import tourGuide.domain.user.UserPreferences;
 import tourGuide.domain.user.UserReward;
 import tourGuide.service.TourGuideService;
-import tourGuide.domain.tripdeal.Provider;
+
+import java.util.HashMap;
+import java.util.List;
 
 @RestController
 public class TourGuideController {
