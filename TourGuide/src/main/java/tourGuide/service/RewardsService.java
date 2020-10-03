@@ -51,28 +51,7 @@ public class RewardsService {
 
 		List<Attraction> attractions = allAttractions;
 		//List<Attraction> attractions = getAllAttractions();
-		/*
-		List<Attraction> attractions = new ArrayList<>();
 
-		logger.debug("Request getAttractions build");
-		HttpClient client = HttpClient.newHttpClient();
-		String requestURI = "http://localhost:8081/getAttractions";
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(URI.create(requestURI))
-				.GET()
-				.build();
-		try {
-			HttpResponse <String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-			logger.debug("Status code = " + response.statusCode());
-			logger.debug("Response Body = " + response.body());
-			ObjectMapper mapper = new ObjectMapper();
-			attractions = mapper.readValue(response.body(), new TypeReference<List<Attraction>>(){ });
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		*/
 		for(VisitedLocation visitedLocation : userLocations) {
 			for(Attraction attraction : attractions) {
 				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
@@ -111,13 +90,16 @@ public class RewardsService {
 	public int getRewardPoints(Attraction attraction, User user) {
 		int rewardsPoint=0;
 
-		WebClient webClient = WebClient.create("http://localhost:8083");
-		String requestURI = "http://localhost:8081/getUserLocation?userId=" + user.getUserId();
+		logger.debug("Request getRewardPoints build");
+
+		WebClient webClient = WebClient.create("http://localhost:8082");
+		String requestURI = "/getRewardPoints?attractionId=" + attraction.attractionId + "&userId=" + user.getUserId();
 		Mono<Integer> result = webClient.get()
 				.uri(requestURI)
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
 				.bodyToMono(Integer.class)
+				.doOnSuccess((r)->System.out.println("SUCCESS getRewardsPoints"+r))
 				;
 
 		logger.debug("Request getRewardPoints build");
