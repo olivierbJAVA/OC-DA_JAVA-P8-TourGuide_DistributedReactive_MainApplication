@@ -1,5 +1,6 @@
 package tourGuide.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -19,10 +20,17 @@ import tourGuide.domain.user.UserReward;
 import tourGuide.tracker.Tracker;
 
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -178,12 +186,33 @@ public class TourGuideService {
 		return result;
 	}
 
-	public Mono<VisitedLocation> trackUserLocation(User user) {
+	// Mono<VisitedLocation>
+	public VisitedLocation trackUserLocation(User user) {
 		logger.debug("Track Location - Thread : " + Thread.currentThread().getName() + " - User : " + user.getUserName());
 
-		//VisitedLocation visitedLocation = new VisitedLocation();
+		//
+		VisitedLocation visitedLocation = new VisitedLocation();
 
 		logger.debug("Request getUserLocation build");
+
+		HttpClient client = HttpClient.newHttpClient();
+		String requestURI = "http://localhost:8081/getUserLocation?userId=" + user.getUserId();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create(requestURI))
+				//.header("userId", user.getUserId().toString())
+				.GET()
+				.build();
+
+		CompletableFuture<HttpResponse<String>> response = null;
+		try {
+			response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+			ObjectMapper mapper = new ObjectMapper();
+			visitedLocation = mapper.readValue(response.get().body(), VisitedLocation.class);
+		} catch (IOException | InterruptedException | ExecutionException e) {
+			logger.error(e.toString());
+		}
+
+		/*
 		WebClient webClient = WebClient.create("http://localhost:8081");
 		String requestURI = "/getUserLocation?userId=" + user.getUserId();
 		System.out.println(requestURI);
@@ -205,6 +234,8 @@ public class TourGuideService {
 				.doOnError((r)->System.out.println("EROR"))
 				//.flatMap()map( () -> user.addToVisitedLocations(result) )
 				;
+		*/
+
 		/*
 		HttpClient client = HttpClient.newHttpClient();
 		String requestURI = "http://localhost:8081/getUserLocation?userId=" + user.getUserId();
@@ -227,8 +258,8 @@ public class TourGuideService {
 
 		return visitedLocation;
 		*/
-		return result;
-
+		//return result;
+		return visitedLocation;
 	}
 
 	public List<NearbyAttraction> getNearByAttractions(VisitedLocation visitedLocation, User user) {
